@@ -1,0 +1,9 @@
+bin/
+vendor/
+*.gem
+.bundle
+pkg/*
+*.swp
+.rvmrc
+.test.env
+Gemfile.lock
