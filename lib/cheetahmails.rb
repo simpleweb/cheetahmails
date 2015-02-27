@@ -11,6 +11,7 @@ module Cheetahmails
   end
 
   def self.getToken(clear_cache = false)
+    tries ||= 2
 
     redis = Redis.new(Cheetahmails.configuration.redis)
 
@@ -29,10 +30,12 @@ module Cheetahmails
 
       response = self.post('/services2/authorization/oAuth2/Token', @options)
 
+      raise RetryException, response.code + " " + response.body if response.code != 200
+
       begin
         jsonresponse = JSON.parse(response.body)
       rescue JSON::ParserError => error
-        return nil
+        raise response.code + " " + response.body
       end
 
       if token = jsonresponse["access_token"]
@@ -44,6 +47,12 @@ module Cheetahmails
 
     token
 
+  rescue RetryException => e
+    if (tries -= 1) > 0
+      retry
+    else
+      raise e
+    end
   end
 
   def self.customerExists(email)
