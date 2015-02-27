@@ -19,9 +19,8 @@ RSpec.describe Cheetahmails, "#getToken" do
         config.username = "invalid"
         config.password = "invalid"
       end
-      token = Cheetahmails.getToken
-      expect(token).to eq(nil)
-    end
+      expect { token = Cheetahmails.getToken }.to raise_error("400 Bad Request")
+   end
     it "authenticating returns a token when credentials are valid" do
       token = Cheetahmails.getToken
       expect(token).to be_kind_of(String)

@@ -30,12 +30,12 @@ module Cheetahmails
 
       response = self.post('/services2/authorization/oAuth2/Token', @options)
 
-      raise RetryException, response.code + " " + response.body if response.code != 200
+      raise RetryException, response.code.to_s + " " + response.body if response.code != 200
 
       begin
         jsonresponse = JSON.parse(response.body)
       rescue JSON::ParserError => error
-        raise response.code + " " + response.body
+        raise response.code.to_s + " " + response.body
       end
 
       if token = jsonresponse["access_token"]
