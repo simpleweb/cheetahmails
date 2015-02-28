@@ -10,7 +10,7 @@ Gem::Specification.new do |s|
   s.homepage    =
     'http://rubygems.org/gems/cheetahmail'
   s.license       = 'MIT'
-  s.add_dependency "httparty", ["~> 0.13.3"]
+  s.add_dependency "faraday",["~> 0.9.1"]
   s.add_dependency "redis", ["~> 3.0.1"]
 
   s.add_development_dependency "rspec"

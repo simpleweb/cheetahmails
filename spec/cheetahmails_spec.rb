@@ -78,4 +78,15 @@ RSpec.describe Cheetahmails, "#addCustomer" do
       expect(response).to eq(true)
     end
   end
+  context "without a valid view id" do
+    it "is not possible to add a customer" do
+      data = {
+        "first_name" => "Tom",
+        "last_name" => "Holder",
+        "email_address" => "tom@simpleweb.co.uk"
+      }
+      response = Cheetahmails.addCustomer -9999, data
+      expect(response).to eq(false)
+    end
+  end
 end

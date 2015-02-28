@@ -1,10 +1,9 @@
-require 'httparty'
+require 'faraday'
 require 'json'
 require 'redis'
 
 module Cheetahmails
-  include HTTParty
-  base_uri 'https://login.eccmp.com'
+  @base_uri = 'https://login.eccmp.com'
 
   class << self
     attr_accessor :configuration
@@ -19,23 +18,26 @@ module Cheetahmails
 
     if not token = redis.get("cheetahmails_access_token")
 
-      @options = {
-        headers: {"Content-Type" => "application/x-www-form-urlencoded"},
-        body: {
-          "username" => Cheetahmails.configuration.username,
-          "password" => Cheetahmails.configuration.password,
-          "grant_type" => "password"
-        }
+      faraday = Faraday.new(:url => @base_uri) do |faraday|
+        faraday.request  :url_encoded             # form-encode POST params
+        #faraday.response :logger                  # log requests to STDOUT
+        faraday.adapter  Faraday.default_adapter  # make requests with Net::HTTP
+      end
+
+      params = {
+        "username" => Cheetahmails.configuration.username,
+        "password" => Cheetahmails.configuration.password,
+        "grant_type" => "password"
       }
 
-      response = self.post('/services2/authorization/oAuth2/Token', @options)
+      response = faraday.post '/services2/authorization/oAuth2/Token', params
 
-      raise RetryException, response.code.to_s + " " + response.body if response.code != 200
+      raise RetryException, response.status.to_s + " " + response.body if response.status != 200
 
       begin
         jsonresponse = JSON.parse(response.body)
       rescue JSON::ParserError => error
-        raise response.code.to_s + " " + response.body
+        raise response.status.to_s + " " + response.body
       end
 
       if token = jsonresponse["access_token"]
@@ -58,30 +60,33 @@ module Cheetahmails
   def self.customerExists(email)
     tries ||= 2
 
-    @options = {
-      headers: {
-        "Authorization" => "Bearer " + self.getToken(tries < 2),
-        "Content-Type" => "application/json",
-        "Accept" => "application/json"
-      },
-      query: {
-        "viewName" => Cheetahmails.configuration.view_name,
-        "prop" => '', #first_name,last_name
-        "columnName" => "email_address",
-        "operation" => "=",
-        "param" => email
-      }
+    faraday = Faraday.new(:url => @base_uri) do |faraday|
+      faraday.request  :url_encoded             # form-encode POST params
+      #faraday.response :logger                  # log requests to STDOUT
+      faraday.adapter  Faraday.default_adapter  # make requests with Net::HTTP
+    end
+
+    faraday.headers["Authorization"] = "Bearer " + self.getToken(tries < 2)
+    faraday.headers["Content-Type"] = "application/json"
+    faraday.headers["Accept"] = "application/json"
+
+    params = {
+      "viewName" => Cheetahmails.configuration.view_name,
+      "prop" => '', #first_name,last_name
+      "columnName" => "email_address",
+      "operation" => "=",
+      "param" => email
     }
 
-    response = self.get('/services2/api/SearchRecords', @options)
+    response = faraday.get '/services2/api/SearchRecords', params
 
     begin
       jsonresponse = JSON.parse(response.body)
     rescue JSON::ParserError => error
-      return nil
+      raise response.status.to_s + " " + response.body
     end
 
-    raise RetryException, jsonresponse["message"] if response.code == 401
+    raise RetryException, jsonresponse["message"] if response.status == 401
 
     begin
       id = jsonresponse[0]["id"]
@@ -106,26 +111,28 @@ module Cheetahmails
 
     data = {"apiPostId" => api_post_id, "data" => data}
 
-    @options = {
-      headers: {
-        "Authorization" => "Bearer " + self.getToken(tries < 2),
-        "Content-Type" => "application/json",
-        "Accept" => "application/json"
-      },
-      body: data.to_json
-    }
+    faraday = Faraday.new(:url => @base_uri) do |faraday|
+      #faraday.response :logger                  # log requests to STDOUT
+      faraday.adapter  Faraday.default_adapter  # make requests with Net::HTTP
+    end
 
-    response = self.post('/services2/api/Recipients', @options)
+    response = faraday.post do |req|
+      req.url '/services2/api/Recipients'
+      req.headers["Authorization"] = "Bearer " + self.getToken(tries < 2)
+      req.headers["Content-Type"] = "application/json"
+      req.headers["Accept"] = "application/json"
+      req.body = data.to_json
+    end
 
     begin
       jsonresponse = JSON.parse(response.body)
     rescue JSON::ParserError => error
-      return nil
+      raise response.status.to_s + " " + response.body
     end
 
-    raise RetryException, jsonresponse["message"] if response.code == 401
+    raise RetryException, jsonresponse["message"] if response.status == 401
 
-    return response.code == 200 && jsonresponse["success"]
+    return response.status == 200 && jsonresponse["success"]
 
   rescue RetryException => e
     if (tries -= 1) > 0
