@@ -12,21 +12,21 @@ RSpec.configure do |config|
   end
 end
 
-RSpec.describe Cheetahmails, "#getToken" do
+RSpec.describe Cheetahmails, "#get_token" do
   context "without being authenticated" do
     it "authenticating does not return a token when credentials are invalid" do
       Cheetahmails.configure do |config|
         config.username = "invalid"
         config.password = "invalid"
       end
-      expect { token = Cheetahmails.getToken }.to raise_error("400 Bad Request")
+      expect { token = Cheetahmails.get_token }.to raise_error("400 Bad Request")
    end
     it "authenticating returns a token when credentials are valid" do
-      token = Cheetahmails.getToken
+      token = Cheetahmails.get_token
       expect(token).to be_kind_of(String)
     end
     it "authenticating caches a token to redis when credentials are valid" do
-      token = Cheetahmails.getToken
+      token = Cheetahmails.get_token
       expect(token).to be_kind_of(String)
 
       redis = Redis.new(Cheetahmails.configuration.redis)
@@ -40,16 +40,16 @@ RSpec.describe Cheetahmails, "#getToken" do
   end
 end
 
-RSpec.describe Cheetahmails, "#customerExists" do
+RSpec.describe Cheetahmails, "#find_list_member" do
   context "with a uniquely generated email address" do
     it "does not exist in cheetahmail" do
-      exists = Cheetahmails.customerExists(Time.now.to_f.to_s + "@simpleweb.co.uk")
+      exists = Cheetahmails.find_list_member(Time.now.to_f.to_s + "@simpleweb.co.uk")
       expect(exists).to eq(false)
     end
   end
   context "with a known email address" do
     it "does exist in cheetahmail" do
-      exists = Cheetahmails.customerExists("tom@simpleweb.co.uk")
+      exists = Cheetahmails.find_list_member("tom@simpleweb.co.uk")
       expect(exists).to be_kind_of(Integer)
     end
   end
@@ -60,13 +60,13 @@ RSpec.describe Cheetahmails, "#customerExists" do
       redis = Redis.new(Cheetahmails.configuration.redis)
       redis.set "cheetahmails_access_token", "invalid token"
 
-      exists = Cheetahmails.customerExists("tom@simpleweb.co.uk")
+      exists = Cheetahmails.find_list_member("tom@simpleweb.co.uk")
       expect(exists).to be_kind_of(Integer)
     end
   end
 end
 
-RSpec.describe Cheetahmails, "#addCustomer" do
+RSpec.describe Cheetahmails, "#add_list_member" do
   context "with a valid view id" do
     it "is possible to add a customer" do
       data = {
@@ -74,7 +74,7 @@ RSpec.describe Cheetahmails, "#addCustomer" do
         "last_name" => "Holder",
         "email_address" => "tom@simpleweb.co.uk"
       }
-      response = Cheetahmails.addCustomer ENV['VIEW_ID'], data
+      response = Cheetahmails.add_list_member ENV['VIEW_ID'], data
       expect(response).to eq(true)
     end
   end
@@ -85,7 +85,7 @@ RSpec.describe Cheetahmails, "#addCustomer" do
         "last_name" => "Holder",
         "email_address" => "tom@simpleweb.co.uk"
       }
-      response = Cheetahmails.addCustomer -9999, data
+      response = Cheetahmails.add_list_member -9999, data
       expect(response).to eq(false)
     end
   end

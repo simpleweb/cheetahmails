@@ -9,7 +9,7 @@ module Cheetahmails
     attr_accessor :configuration
   end
 
-  def self.getToken(clear_cache = false)
+  def self.get_token(clear_cache = false)
     tries ||= 2
 
     redis = Redis.new(Cheetahmails.configuration.redis)
@@ -57,7 +57,7 @@ module Cheetahmails
     end
   end
 
-  def self.customerExists(email)
+  def self.find_list_member(email)
     tries ||= 2
 
     faraday = Faraday.new(:url => @base_uri) do |faraday|
@@ -66,7 +66,7 @@ module Cheetahmails
       faraday.adapter  Faraday.default_adapter  # make requests with Net::HTTP
     end
 
-    faraday.headers["Authorization"] = "Bearer " + self.getToken(tries < 2)
+    faraday.headers["Authorization"] = "Bearer " + self.get_token(tries < 2)
     faraday.headers["Content-Type"] = "application/json"
     faraday.headers["Accept"] = "application/json"
 
@@ -100,7 +100,7 @@ module Cheetahmails
     end
   end
 
-  def self.addCustomer(api_post_id, key_data)
+  def self.add_list_member(api_post_id, key_data)
     tries ||= 2
 
     data = []
@@ -118,7 +118,7 @@ module Cheetahmails
 
     response = faraday.post do |req|
       req.url '/services2/api/Recipients'
-      req.headers["Authorization"] = "Bearer " + self.getToken(tries < 2)
+      req.headers["Authorization"] = "Bearer " + self.get_token(tries < 2)
       req.headers["Content-Type"] = "application/json"
       req.headers["Accept"] = "application/json"
       req.body = data.to_json
