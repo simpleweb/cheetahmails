@@ -12,11 +12,14 @@ module Cheetahmails
   def self.get_token(clear_cache = false)
     tries ||= 2
 
-    redis = Redis.new(Cheetahmails.configuration.redis)
+    begin
+      redis = Redis.new(Cheetahmails.configuration.redis)
+      redis.del "cheetahmails_access_token" if clear_cache
+      token = redis.get("cheetahmails_access_token")
+    rescue => error
+    end
 
-    redis.del "cheetahmails_access_token" if clear_cache
-
-    if not token = redis.get("cheetahmails_access_token")
+    if not token
 
       faraday = Faraday.new(:url => @base_uri) do |faraday|
         faraday.request  :url_encoded             # form-encode POST params
@@ -41,8 +44,11 @@ module Cheetahmails
       end
 
       if token = jsonresponse["access_token"]
-        redis.set("cheetahmails_access_token", token)
-        redis.expire("cheetahmails_access_token", jsonresponse["expires_in"])
+        begin
+          redis.set("cheetahmails_access_token", token)
+          redis.expire("cheetahmails_access_token", jsonresponse["expires_in"])
+        rescue => error
+        end
       end
 
     end

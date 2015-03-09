@@ -3,8 +3,12 @@ require 'redis'
 
 RSpec.configure do |config|
   config.before(:each) do
-    redis = Redis.new(Cheetahmails.configuration.redis)
-    redis.del "cheetahmails_access_token"
+    begin
+      redis = Redis.new(Cheetahmails.configuration.redis)
+      redis.del "cheetahmails_access_token"
+    rescue => error
+    end
+
     Cheetahmails.configure do |config|
       config.username = ENV['USERNAME']
       config.password = ENV['PASSWORD']
@@ -29,13 +33,18 @@ RSpec.describe Cheetahmails, "#get_token" do
       token = Cheetahmails.get_token
       expect(token).to be_kind_of(String)
 
-      redis = Redis.new(Cheetahmails.configuration.redis)
-      cached_token = redis.get "cheetahmails_access_token"
+      begin
+        redis = Redis.new(Cheetahmails.configuration.redis)
+        cached_token = redis.get "cheetahmails_access_token"
 
-      expect(cached_token).to eq(token)
+        expect(cached_token).to eq(token)
 
-      # Expiry on token
-      expect(redis.ttl "cheetahmails_access_token").to be > 28700
+        # Expiry on token
+        expect(redis.ttl "cheetahmails_access_token").to be > 28700
+      rescue => error
+        expect(true).to eq(false)
+      end
+
     end
   end
 end
@@ -57,8 +66,12 @@ RSpec.describe Cheetahmails, "#find_list_member" do
     # This tests the re-generation of auth token
     it "does exist in cheetahmail" do
 
-      redis = Redis.new(Cheetahmails.configuration.redis)
-      redis.set "cheetahmails_access_token", "invalid token"
+      begin
+        redis = Redis.new(Cheetahmails.configuration.redis)
+        redis.set "cheetahmails_access_token", "invalid token"
+      rescue => error
+        expect(true).to eq(false)
+      end
 
       exists = Cheetahmails.find_list_member("tom@simpleweb.co.uk")
       expect(exists).to be_kind_of(Integer)
