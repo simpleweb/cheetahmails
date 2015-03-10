@@ -63,7 +63,7 @@ module Cheetahmails
     end
   end
 
-  def self.find_list_member(email)
+  def self.find_list_member(email, prop='')
     tries ||= 2
 
     faraday = Faraday.new(:url => @base_uri) do |faraday|
@@ -78,7 +78,7 @@ module Cheetahmails
 
     params = {
       "viewName" => Cheetahmails.configuration.view_name,
-      "prop" => '', #first_name,last_name
+      "prop" => prop, #first_name,last_name
       "columnName" => "email_address",
       "operation" => "=",
       "param" => email
@@ -89,13 +89,15 @@ module Cheetahmails
     begin
       jsonresponse = JSON.parse(response.body)
     rescue JSON::ParserError => error
-      raise response.status.to_s + " " + response.body
+      raise response.statzus.to_s + " " + response.body
     end
 
     raise RetryException, jsonresponse["message"] if response.status == 401
 
+    return false if response.status == 404
+
     begin
-      id = jsonresponse[0]["id"]
+      return jsonresponse[0]
     rescue => error
       return false
     end
