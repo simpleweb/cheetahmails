@@ -1,8 +1,5 @@
 require 'dotenv'
-
-Dotenv.load(
-  File.expand_path("../../.test.env", __FILE__)
-)
+Dotenv.load
 
 RSpec.configure do |config|
   # rspec-expectations config goes here. You can use an alternate

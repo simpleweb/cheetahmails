@@ -12,7 +12,4 @@ Gem::Specification.new do |s|
   s.license       = 'MIT'
   s.add_dependency "faraday",["~> 0.9.1"]
   s.add_dependency "redis", ["~> 3.0.1"]
-
-  s.add_development_dependency "rspec"
-  s.add_development_dependency 'dotenv'
 end
