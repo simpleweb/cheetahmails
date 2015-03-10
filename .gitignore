@@ -7,3 +7,4 @@ pkg/*
 .rvmrc
 .test.env
 Gemfile.lock
+.env
