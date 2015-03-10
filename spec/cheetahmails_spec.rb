@@ -59,7 +59,7 @@ RSpec.describe Cheetahmails, "#find_list_member" do
   context "with a known email address" do
     it "does exist in cheetahmail" do
       exists = Cheetahmails.find_list_member("tom@simpleweb.co.uk")
-      expect(exists).to be_kind_of(Integer)
+      expect(exists["id"]).to be_kind_of(Integer)
     end
   end
   context "with an invalid access token and a known email address" do
@@ -74,7 +74,7 @@ RSpec.describe Cheetahmails, "#find_list_member" do
       end
 
       exists = Cheetahmails.find_list_member("tom@simpleweb.co.uk")
-      expect(exists).to be_kind_of(Integer)
+      expect(exists["id"]).to be_kind_of(Integer)
     end
   end
 end
