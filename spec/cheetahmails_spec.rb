@@ -66,52 +66,37 @@ RSpec.describe Cheetahmails do
           expect(response).to be_kind_of(Hash)
           expect(response).to include("id", "properties")
           expect(response["id"]).to be_kind_of(Integer)
+          # expect(Cheetahmails).to receive(:get_token).exactly(3).times
         end
       end
     end
   end
 
-  #   context " token and a known email address" do
-  #     # This tests the re-generation of auth token
-  #     it "does exist in cheetahmail" do
+  context "#add_list_member" do
+    context "with a valid view id" do
+      it "succeeds and returns true" do
+        data = {
+          "first_name" => "Tom",
+          "last_name" => "Holder",
+          "email_address" => "tom@simpleweb.co.uk"
+        }
+        response = Cheetahmails.add_list_member ENV['VIEW_ID'], data
+        expect(response).to eq(true)
+      end
+    end
 
-  #       begin
-  #         redis = Redis.new(Cheetahmails.configuration.redis)
-  #
-  #       rescue => error
-  #         expect(true).to eq(false)
-  #       end
-
-  #       exists = Cheetahmails.find_list_member("tom@simpleweb.co.uk")
-  #       expect(exists["id"]).to be_kind_of(Integer)
-  #     end
-  #   end
-  # end
-
-  # context "#add_list_member" do
-  #   context "with a valid view id" do
-  #     it "is possible to add a customer" do
-  #       data = {
-  #         "first_name" => "Tom",
-  #         "last_name" => "Holder",
-  #         "email_address" => "tom@simpleweb.co.uk"
-  #       }
-  #       response = Cheetahmails.add_list_member ENV['VIEW_ID'], data
-  #       expect(response).to eq(true)
-  #     end
-  #   end
-  #   context "without a valid view id" do
-  #     it "is not possible to add a customer" do
-  #       data = {
-  #         "first_name" => "Tom",
-  #         "last_name" => "Holder",
-  #         "email_address" => "tom@simpleweb.co.uk"
-  #       }
-  #       response = Cheetahmails.add_list_member -9999, data
-  #       expect(response).to eq(false)
-  #     end
-  #   end
-  # end
+    context "with an invalid view id" do
+      it "succeeds and returns true" do
+        data = {
+          "first_name" => "Tom",
+          "last_name" => "Holder",
+          "email_address" => "tom@simpleweb.co.uk"
+        }
+        response = Cheetahmails.add_list_member -9999, data
+        expect(response).to eq(false)
+      end
+    end
+  end
 end
 
 
