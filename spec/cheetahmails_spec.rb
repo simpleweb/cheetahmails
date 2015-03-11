@@ -56,6 +56,17 @@ RSpec.describe Cheetahmails do
         expect(response["id"]).to be_kind_of(Integer)
       end
 
+      context "when additional properties are requested" do
+        it "responds with the row with additional properties included" do
+          response = Cheetahmails.find_list_member("tom@simpleweb.co.uk", "email_address")
+          expect(response).to be_kind_of(Hash)
+          expect(response).to include("id", "properties")
+          expect(response["id"]).to be_kind_of(Integer)
+          expect(response["properties"][0]["propName"]).to eq "email_address"
+          expect(response["properties"][0]["value"]).to be_kind_of String
+        end
+      end
+
       context "with an invalid access token" do
         before do
           @redis.set "cheetahmails_access_token", "invalid token"
@@ -66,7 +77,7 @@ RSpec.describe Cheetahmails do
           expect(response).to be_kind_of(Hash)
           expect(response).to include("id", "properties")
           expect(response["id"]).to be_kind_of(Integer)
-          # expect(Cheetahmails).to receive(:get_token).exactly(3).times
+          # expect(Cheetahmails).to receive(:get_token).exactly(x).times
         end
       end
     end
