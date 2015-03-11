@@ -1,6 +1,6 @@
 Gem::Specification.new do |s|
   s.name        = 'cheetahmails'
-  s.version     = '0.1.0'
+  s.version     = '0.1.1'
   s.date        = '2015-02-22'
   s.summary     = "Cheetah mail is a clunky campaign manager by Experian"
   s.description = "Some basic cheetah mail API end points implemented"
