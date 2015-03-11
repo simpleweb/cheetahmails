@@ -63,22 +63,19 @@ module Cheetahmails
     end
   end
 
-  def self.find_list_member(email, prop='')
-    tries ||= 2
-
+  def self.find_list_member(email, prop = '', allow_retry_qty = 3)
     faraday = Faraday.new(:url => @base_uri) do |faraday|
-      faraday.request  :url_encoded             # form-encode POST params
-      #faraday.response :logger                  # log requests to STDOUT
-      faraday.adapter  Faraday.default_adapter  # make requests with Net::HTTP
+      faraday.request :url_encoded
+      faraday.adapter  Faraday.default_adapter
     end
 
-    faraday.headers["Authorization"] = "Bearer " + self.get_token(tries < 2)
+    faraday.headers["Authorization"] = "Bearer #{Cheetahmails.get_token(false)}"
     faraday.headers["Content-Type"] = "application/json"
     faraday.headers["Accept"] = "application/json"
 
     params = {
       "viewName" => Cheetahmails.configuration.view_name,
-      "prop" => prop, #first_name,last_name
+      "prop" => prop,
       "columnName" => "email_address",
       "operation" => "=",
       "param" => email
@@ -86,25 +83,18 @@ module Cheetahmails
 
     response = faraday.get '/services2/api/SearchRecords', params
 
-    begin
-      jsonresponse = JSON.parse(response.body)
-    rescue JSON::ParserError => error
-      raise response.statzus.to_s + " " + response.body
-    end
-
-    raise RetryException, jsonresponse["message"] if response.status == 401
-
-    return false if response.status == 404
-
-    begin
-      return jsonresponse[0]
-    rescue => error
-      return false
-    end
-
-  rescue RetryException => e
-    if (tries -= 1) > 0
-      retry
+    case response.status
+      when 200
+        return JSON.parse(response.body)[0]
+      when 404
+        return false
+      when 401
+        if allow_retry_qty > 0
+          Cheetahmails.get_token(true)
+          find_list_member(email, prop, allow_retry_qty - 1)
+        else
+          raise "401"
+        end
     end
   end
 
