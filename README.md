@@ -14,8 +14,16 @@ To use the gem you must configure it like:
       config.password = ENV['PASSWORD']
     end
 
-To run the tests, create a .test.env file in the root of the project like:
+To run the tests, create a .env file in the root of the project like:
 
     USERNAME=<YOUR_API_USERNAME>
     PASSWORD=<YOUR_API_PASSWORD>
     VIEW_ID=<YOUR_VIEW_ID>
+
+You can run the specs on save with
+
+    guard
+
+or run them manually with
+
+    bundle exec rspec
