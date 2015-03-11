@@ -4,7 +4,7 @@ source 'https://rubygems.org'
 gemspec
 
 group :development do
-  gem 'guard-rspec', require: false
+  gem 'guard-rspec', '~> 4.3.1', require: false
   gem 'rspec', require: false
   gem 'dotenv', require: false
 end
